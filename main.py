@@ -4,20 +4,20 @@ import pandas as pd
 import openai
 import os
 
-# Get OpenAI key from environment
+# OpenAI key from environment
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     raise ValueError("OPENAI_API_KEY not set!")
 
-# Load pricelist CSV
+# Load pricelist
 df = pd.read_csv("pricelist.csv")
 
 app = FastAPI()
 
-# Allow frontend JS to call
+# Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with your domain in production
+    allow_origins=["*"],  # Replace * with your domain in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -52,7 +52,8 @@ async def chat(request: Request):
                 {"role": "user", "content": f"Customer query: {user_query}\nRelevant product info: {context}"}
             ]
         )
-        reply_text = response.choices[0].message.content
+
+        reply_text = response.choices[0].message.get("content", "⚠️ No content returned")
         return {"reply": reply_text}
 
     except Exception as e:
